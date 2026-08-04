@@ -561,6 +561,22 @@
         }
 
         /// <summary>
+        /// Release a surface leased by CefRenderHandler.OnAcceleratedPaint. |surfaceId| is the value
+        /// delivered in CefAcceleratedPaintInfoCommon.SurfaceId. This method is only used when window
+        /// rendering is disabled.
+        /// </summary>
+        /// <remarks>
+        /// While a lease is held the surface is not returned to the capture pool and its texture handle stays
+        /// valid, so it may be sampled after the paint callback returns. The pool is small, so release each
+        /// surface as soon as it is no longer in use or capture will stall. Releasing an id that is unknown or
+        /// already released does nothing.
+        /// </remarks>
+        public void ReleaseAcceleratedPaintSurface(ulong surfaceId)
+        {
+            cef_browser_host_t.release_accelerated_paint_surface(_self, surfaceId);
+        }
+
+        /// <summary>
         /// Issue a BeginFrame request to Chromium.  Only valid when
         /// CefWindowInfo::external_begin_frame_enabled is set to true.
         /// </summary>
