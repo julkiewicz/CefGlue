@@ -20,6 +20,7 @@ public class CefAcceleratedPaintInfoCommon
             HasRegionCaptureRectangle = info.has_region_capture_rect != 0,
             HasSourceSize = info.has_source_size != 0,
             HasCaptureCounter = info.has_capture_counter != 0,
+            SurfaceId = info.surface_id,
         };
     }
 
@@ -36,4 +37,15 @@ public class CefAcceleratedPaintInfoCommon
     public bool HasRegionCaptureRectangle;
     public bool HasSourceSize;
     public bool HasCaptureCounter;
+
+    /// <summary>
+    /// Opaque identifier for a leased surface, or 0 when no lease was granted.
+    /// </summary>
+    /// <remarks>
+    /// While a lease is held the surface is not returned to the capture pool and its texture handle stays
+    /// valid, so it may be sampled after the paint callback returns. Release it through
+    /// <see cref="CefBrowserHost.ReleaseAcceleratedPaintSurface"/> once it is no longer in use: the pool is
+    /// small, and holding leases stalls capture.
+    /// </remarks>
+    public ulong SurfaceId { get; init; }
 }

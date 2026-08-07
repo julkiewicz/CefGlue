@@ -71,5 +71,15 @@ namespace Xilium.CefGlue.Interop
         /// Optional flag of capture_counter
         ///
         public byte has_capture_counter;
+
+        ///
+        /// Opaque identifier for a leased surface, or 0 when no lease was granted.
+        ///
+        /// While a lease is held the surface is not returned to the capture pool and its texture handle
+        /// stays valid, so the client may keep sampling it after the paint callback returns. A lease must
+        /// be released once the surface is no longer in use; the pool is small, and holding leases
+        /// indefinitely stalls capture.
+        ///
+        public ulong surface_id;
     }
 }
