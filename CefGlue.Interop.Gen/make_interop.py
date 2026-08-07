@@ -163,6 +163,29 @@ def make_struct_file(cls):
         'body': indent + ('\n'+indent).join(body)
       }
 
+def get_added_version(func):
+    """The API version that introduced a method, as a sortable number.
+
+    A method with no 'added' attribute belongs to the original surface and sorts first.
+    'experimental' is the highest version there is, so it sorts last."""
+    added = func.get_attrib('added')
+    if added is None:
+        return 0
+    if added == 'experimental':
+        return 999999
+    return int(added)
+
+def sort_by_added_version(funcs):
+    """Order struct members the way CEF's own translator does: by the version that added them, then by
+    declaration order.
+
+    This is what keeps the C API layout stable across versions. A member added later is appended after every
+    member of earlier versions, wherever its C++ declaration happens to sit, so a client built against an older
+    version still finds the members it knows at the offsets it expects. Following declaration order instead puts
+    a newly added member in the middle of the struct and silently shifts every member below it, which reads as
+    calls landing on the wrong function pointer at runtime."""
+    return sorted(funcs, key=get_added_version)
+
 def get_funcs(cls, base = True, inherited = True):
     funcs = []
 
@@ -184,7 +207,7 @@ def get_funcs(cls, base = True, inherited = True):
         current_cls = classes.pop()
         if current_cls is None:
             break
-        for func in current_cls.get_virtual_funcs():
+        for func in sort_by_added_version(current_cls.get_virtual_funcs()):
             funcs.append( get_func_parts(func, i) )
             i += 1
 
