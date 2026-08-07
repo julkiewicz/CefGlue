@@ -77,6 +77,24 @@ This file is consumed by:
 | `CefRuntime/make_cefredist_osx.sh` | `grep` + `sed` |
 | `.github/workflows/build-cef-packages.yml` | `cefbuildversion` workflow input (set when triggering manually) |
 
+### `cef_version` and `cef_build_version` describe different things here
+
+This fork binds a CEF we build ourselves: the ReadyM surface-lease build, published as a release asset on
+`readycodeio/cef` rather than on the Spotify CDN. So the two version fields no longer name the same release,
+and each has to keep naming what its own consumers can actually resolve.
+
+- **`cef_build_version` is the CEF the bindings target.** `CefGlue.Interop.Gen/include/` holds that build's
+  headers and `CefGlue/Interop/version.g.cs` is generated from them, so this is the build a host must ship for
+  the interop to be correct. Its Windows binaries come from the GitHub release, not from a package feed.
+- **`cef_version` stays an upstream release number**, because `Directory.Packages.props` pins
+  `chromiumembeddedframework.runtime[.win-x64/.win-arm64]` at `$(CefVersion)` and `CefGlue.Packages.props`
+  references them unconditionally. A value with no published package fails `restore` on every platform. It is
+  the closest upstream release, and it is what this repo's own tests and demos run against.
+
+One consequence worth knowing before you rely on it: the `cef.runtime.*` Linux and macOS packages are built by
+downloading `cef_build_version` from the Spotify CDN, which does not host our build. Those platforms are out of
+scope for the surface lease, which is Windows and D3D12 only.
+
 ## Step-by-Step Upgrade Process (Manual / Full Reference)
 
 > **Note:** Steps 2–4 are automated by `upgrade-cef.ps1` / `upgrade-cef.sh` (see [Quick Upgrade](#quick-upgrade-automated) above).
