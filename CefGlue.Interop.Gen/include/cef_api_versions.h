@@ -289,14 +289,14 @@
 #define CEF_API_HASH_999998 "210767725a6feb2e4becd3956b648cab6a006712"
 #endif
 
-// Experimental version last updated August 04, 2026.
+// Experimental version last updated September 03, 2026.
 #define CEF_API_VERSION_999999 999999
 #if defined(OS_WIN)
-#define CEF_API_HASH_999999 "98f8c0d3b73ee1ade0ea70e5e67f48116fa2b3f3"
+#define CEF_API_HASH_999999 "d4b774e125a4f5926af95ab608c0df3b9e378f0b"
 #elif defined(OS_MAC)
-#define CEF_API_HASH_999999 "f7f0a19b29e2f1cb7dec42ee3ef26fc571da8a8e"
+#define CEF_API_HASH_999999 "43a32f88f5a3e46640d3d2f8c8d8692789a554b7"
 #elif defined(OS_LINUX)
-#define CEF_API_HASH_999999 "8aba464ae9af72f65a1584199dd81fc3557c75b1"
+#define CEF_API_HASH_999999 "f38aa82e81508d5bafa607dbaf697be15697cc2e"
 #endif
 
 // Oldest supported CEF version.

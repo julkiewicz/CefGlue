@@ -1,4 +1,4 @@
-﻿//
+//
 // This file manually written from cef/include/internal/cef_types.h.
 //
 namespace Xilium.CefGlue.Interop
@@ -81,5 +81,17 @@ namespace Xilium.CefGlue.Interop
         /// indefinitely stalls capture.
         ///
         public ulong surface_id;
+
+        ///
+        /// Identifier for the underlying pool surface, or 0 when unavailable.
+        ///
+        /// STABLE across paints: two paints carrying the same value are the same underlying texture, so
+        /// per-surface work such as importing it and wrapping it in a texture object can be done once and
+        /// reused for as long as the browser lives.
+        ///
+        /// This is exactly what surface_id is NOT. That one identifies a LEASE and is fresh on every paint,
+        /// so per-surface work keyed on it is rebuilt every frame.
+        ///
+        public ulong pool_surface_id;
     }
 }

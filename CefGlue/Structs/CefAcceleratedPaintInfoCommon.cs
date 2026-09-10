@@ -1,4 +1,4 @@
-﻿namespace Xilium.CefGlue;
+namespace Xilium.CefGlue;
 
 using Xilium.CefGlue.Interop;
 
@@ -21,6 +21,7 @@ public class CefAcceleratedPaintInfoCommon
             HasSourceSize = info.has_source_size != 0,
             HasCaptureCounter = info.has_capture_counter != 0,
             SurfaceId = info.surface_id,
+            PoolSurfaceId = info.pool_surface_id,
         };
     }
 
@@ -48,4 +49,18 @@ public class CefAcceleratedPaintInfoCommon
     /// small, and holding leases stalls capture.
     /// </remarks>
     public ulong SurfaceId { get; init; }
+
+    /// <summary>
+    /// Identifier for the underlying pool surface, or 0 when unavailable.
+    /// </summary>
+    /// <remarks>
+    /// STABLE across paints: two paints carrying the same value are the same underlying texture, so work done
+    /// per surface, such as importing it into a graphics API and wrapping it in a texture object, can be done
+    /// once and reused for as long as the browser lives.
+    /// <para>
+    /// This is exactly what <see cref="SurfaceId"/> is NOT. That identifies a LEASE and is fresh on every
+    /// paint, so anything cached against it is rebuilt every frame. Key per-surface state on this instead.
+    /// </para>
+    /// </remarks>
+    public ulong PoolSurfaceId { get; init; }
 }
