@@ -1,4 +1,4 @@
-﻿using CefGlue;
+using CefGlue;
 
 namespace Xilium.CefGlue
 {
@@ -15,6 +15,12 @@ namespace Xilium.CefGlue
 
         private static bool _loaded;
         private static bool _initialized;
+
+        /// <summary>
+        /// Whether THIS runtime called cef_initialize, as opposed to adopting a runtime someone else had
+        /// already brought up. Shutdown reverses only what this runtime did.
+        /// </summary>
+        private static bool _initializedByThisRuntime;
 
         static CefRuntime()
         {
@@ -220,6 +226,7 @@ namespace Xilium.CefGlue
                 if (libcef.initialize(n_main_args, n_settings, n_app, (void*)windowsSandboxInfo) != 0)
                 {
                     _initialized = true;
+                    _initializedByThisRuntime = true;
                 }
                 else
                 {
@@ -231,6 +238,38 @@ namespace Xilium.CefGlue
                 CefMainArgs.Free(n_main_args);
                 CefSettings.Free(n_settings);
             }
+        }
+
+        /// <summary>
+        /// Adopts a CEF runtime that is ALREADY initialized in this process by someone else, instead of
+        /// initializing one.
+        /// </summary>
+        /// <remarks>
+        /// This is an ADDITIONAL way in, not a replacement for <see cref="Initialize(CefMainArgs,CefSettings,CefApp,IntPtr)"/>.
+        /// A host that owns CEF itself keeps using that; this exists for a process where something else has
+        /// already called cef_initialize and this runtime must talk to it rather than fight it, since CEF
+        /// cannot be initialized twice in one process.
+        /// <para>
+        /// The version check still runs, because bindings that disagree with the loaded library are just as
+        /// wrong here as anywhere, and it is the only check available when there is no initialize call to fail.
+        /// What is deliberately NOT done is calling cef_initialize.
+        /// </para>
+        /// <para>
+        /// <see cref="Shutdown"/> afterwards tears down only this runtime's own state and leaves the CEF that
+        /// was adopted running, because whoever started it is still using it.
+        /// </para>
+        /// </remarks>
+        /// <param name="path">Directory holding the CEF library, or null to use the default search.</param>
+        /// <exception cref="CefVersionMismatchException"></exception>
+        /// <exception cref="InvalidOperationException">The runtime is already initialized or adopted.</exception>
+        public static void InitializeFromRunningRuntime(string path = null)
+        {
+            if (_initialized) throw ExceptionBuilder.CefRuntimeAlreadyInitialized();
+
+            Load(path);
+
+            _initialized = true;
+            _initializedByThisRuntime = false;
         }
 
         [Obsolete("Use Initialize(CefMainArgs,CefSettings,CefApp,IntPtr) overload instead.")]
@@ -246,6 +285,13 @@ namespace Xilium.CefGlue
         /// </summary>
         /// <param name="skipGC">If set to <see langword="false"/> perform GC
         /// and wait for pending finalizers.</param>
+        /// <remarks>
+        /// Reverses exactly what this runtime did. If it called cef_initialize, this calls cef_shutdown; if it
+        /// adopted a runtime someone else had started (<see cref="InitializeFromRunningRuntime"/>), it drops
+        /// its own state and leaves that CEF running, because the party that started it is still using it.
+        /// Shutting down someone else's runtime, or releasing objects they still hold, surfaces much later and
+        /// somewhere else.
+        /// </remarks>
         public static void Shutdown(bool skipGC = false)
         {
             if (!_initialized) return;
@@ -256,7 +302,13 @@ namespace Xilium.CefGlue
                 GC.WaitForPendingFinalizers();
             }
 
-            libcef.shutdown();
+            if (_initializedByThisRuntime)
+            {
+                libcef.shutdown();
+            }
+
+            _initialized = false;
+            _initializedByThisRuntime = false;
         }
 
         /// <summary>
