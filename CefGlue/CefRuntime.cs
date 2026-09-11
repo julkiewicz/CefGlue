@@ -22,6 +22,12 @@ namespace Xilium.CefGlue
         /// </summary>
         private static bool _initializedByThisRuntime;
 
+        /// <summary>
+        /// Whether a resolver has already been installed. Set once: the platform allows one resolver per
+        /// assembly and throws on a second.
+        /// </summary>
+        private static bool _runtimeLibraryBound;
+
         static CefRuntime()
         {
             _platform = DetectPlatform();
@@ -260,16 +266,53 @@ namespace Xilium.CefGlue
         /// </para>
         /// </remarks>
         /// <param name="path">Directory holding the CEF library, or null to use the default search.</param>
+        /// <param name="libraryPath">
+        /// Full path to the CEF library to bind to, or null to let the platform resolve it by name.
+        /// </param>
         /// <exception cref="CefVersionMismatchException"></exception>
         /// <exception cref="InvalidOperationException">The runtime is already initialized or adopted.</exception>
-        public static void InitializeFromRunningRuntime(string path = null)
+        public static void InitializeFromRunningRuntime(string path = null, string libraryPath = null)
         {
             if (_initialized) throw ExceptionBuilder.CefRuntimeAlreadyInitialized();
+
+            if (!string.IsNullOrEmpty(libraryPath)) BindRuntimeLibrary(libraryPath);
 
             Load(path);
 
             _initialized = true;
             _initializedByThisRuntime = false;
+        }
+
+        /// <summary>
+        /// Binds this library's CEF imports to one specific file, whatever it is called and wherever it is.
+        /// </summary>
+        /// <remarks>
+        /// Needed whenever the process already contains a DIFFERENT CEF. P/Invoke here is declared against the
+        /// name "libcef", and the platform resolves that against modules already loaded, so a host application
+        /// that ships its own CEF wins and these calls land in a runtime this build knows nothing about. The
+        /// symptom is not a missing export: it is a version check that returns nothing, because the other
+        /// runtime does not recognise the API version this build asks about.
+        /// <para>
+        /// A resolver rather than a pre-load, because a resolver runs BEFORE the default resolution and
+        /// therefore beats an already-loaded module, while loading the file first merely adds a second module
+        /// that nothing points at.
+        /// </para>
+        /// <para>
+        /// Loading the same file twice is harmless: the platform returns the handle it already has and raises
+        /// the reference count, so this binds to the module the host loaded rather than making a rival copy.
+        /// </para>
+        /// </remarks>
+        public static void BindRuntimeLibrary(string libraryPath)
+        {
+            if (string.IsNullOrEmpty(libraryPath)) throw new ArgumentNullException(nameof(libraryPath));
+            if (_runtimeLibraryBound) return;
+
+            NativeLibrary.SetDllImportResolver(typeof(CefRuntime).Assembly, (name, assembly, searchPath) =>
+                name == libcef.DllName && NativeLibrary.TryLoad(libraryPath, out var handle)
+                    ? handle
+                    : IntPtr.Zero);
+
+            _runtimeLibraryBound = true;
         }
 
         [Obsolete("Use Initialize(CefMainArgs,CefSettings,CefApp,IntPtr) overload instead.")]
