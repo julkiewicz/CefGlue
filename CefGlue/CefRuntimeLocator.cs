@@ -32,13 +32,23 @@ public static class CefRuntimeLocator
         if (CachedPaths.TryGetValue(fileName, out var path)) return path;
         
         // search in common resolve paths
-        foreach (var libPath in GetCommonResolvePaths().Select(d => Path.Combine(d, fileName)))
+        // Candidates are filtered before they reach a path API. AppDomain.CurrentDomain.BaseDirectory is empty
+        // when the runtime is HOSTED by a native process rather than started from a managed executable, and
+        // Path.Combine and Path.GetFullPath both throw on an empty string, so an empty candidate takes down the
+        // whole search rather than being skipped.
+        foreach (var libPath in GetCommonResolvePaths()
+                     .Where(d => !string.IsNullOrEmpty(d))
+                     .Select(d => Path.Combine(d, fileName)))
         {
             if (File.Exists(libPath)) return CachedPaths[fileName] = libPath;
         }
         
         var rootPath = GetRootPath();
-        
+
+        // Nothing below can run without a root, and an empty one is a hosted runtime rather than a broken
+        // install: the caller passes an explicit directory in that case.
+        if (string.IsNullOrEmpty(rootPath)) return null;
+
         // Search in AppDomain base directory and subdirectories
         try
         {
