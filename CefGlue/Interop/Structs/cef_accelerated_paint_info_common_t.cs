@@ -85,13 +85,23 @@ namespace Xilium.CefGlue.Interop
         ///
         /// Identifier for the underlying pool surface, or 0 when unavailable.
         ///
-        /// STABLE across paints: two paints carrying the same value are the same underlying texture, so
-        /// per-surface work such as importing it and wrapping it in a texture object can be done once and
-        /// reused for as long as the browser lives.
+        /// STABLE across paints and NEVER REUSED: two paints carrying the same value are the same underlying
+        /// texture, and a value once retired is not handed out again for a different one. So per-surface work,
+        /// such as importing it and wrapping it in a texture object, can be done once and reused.
         ///
         /// This is exactly what surface_id is NOT. That one identifies a LEASE and is fresh on every paint,
         /// so per-surface work keyed on it is rebuilt every frame.
         ///
         public ulong pool_surface_id;
+
+        ///
+        /// Identifies the capture session a paint belongs to, or 0 when unavailable.
+        ///
+        /// Every paint of one session carries the same value, and the value changes when capture is rebuilt,
+        /// which happens on navigation and on resize. A new session's surfaces are new textures, so anything a
+        /// client keeps per surface from an older session can never be asked for again and should be released
+        /// when this value changes.
+        ///
+        public ulong capture_session_id;
     }
 }
