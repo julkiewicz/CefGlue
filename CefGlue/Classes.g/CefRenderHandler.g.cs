@@ -41,6 +41,7 @@ namespace Xilium.CefGlue
         private cef_render_handler_t.on_ime_composition_range_changed_delegate _ds12;
         private cef_render_handler_t.on_text_selection_changed_delegate _ds13;
         private cef_render_handler_t.on_virtual_keyboard_requested_delegate _ds14;
+        private cef_render_handler_t.on_accelerated_paint_surface_retired_delegate _ds15;
         
         protected CefRenderHandler()
         {
@@ -88,6 +89,8 @@ namespace Xilium.CefGlue
             _self->_on_text_selection_changed = Marshal.GetFunctionPointerForDelegate(_ds13);
             _ds14 = new cef_render_handler_t.on_virtual_keyboard_requested_delegate(on_virtual_keyboard_requested);
             _self->_on_virtual_keyboard_requested = Marshal.GetFunctionPointerForDelegate(_ds14);
+            _ds15 = new cef_render_handler_t.on_accelerated_paint_surface_retired_delegate(on_accelerated_paint_surface_retired);
+            _self->_on_accelerated_paint_surface_retired = Marshal.GetFunctionPointerForDelegate(_ds15);
         }
         
         ~CefRenderHandler()

@@ -436,5 +436,31 @@
         /// existing keyboard for this browser should be hidden.
         /// </summary>
         protected virtual void OnVirtualKeyboardRequested(CefBrowser browser, CefTextInputMode inputMode) { }
+
+        private void on_accelerated_paint_surface_retired(cef_render_handler_t* self, cef_browser_t* browser, ulong pool_surface_id)
+        {
+            CheckSelf(self);
+
+            var mBrowser = CefBrowser.FromNative(browser);
+            OnAcceleratedPaintSurfaceRetired(mBrowser, pool_surface_id);
+        }
+
+        /// <summary>
+        /// Called when the surface identified by |poolSurfaceId| is permanently
+        /// retired: it has left the capture pool and will never be delivered to
+        /// OnAcceleratedPaint again. This method is only used when window rendering
+        /// is disabled.
+        /// The same surface is delivered many times under the same |poolSurfaceId|,
+        /// so a client that does per-surface work once, such as opening the shared
+        /// handle into its own graphics API, keeps that work keyed by the id. This is
+        /// what says to throw it away. Nothing else does: releasing a lease only
+        /// means the surface may be reused, and an import the client made is a
+        /// reference the pool cannot see, so the pool dropping its own does not free
+        /// the memory.
+        /// Ids are never reused, so an id the client does not know can be ignored.
+        /// Called on the same thread as OnAcceleratedPaint, and for any one surface
+        /// always after the last paint that delivered it.
+        /// </summary>
+        protected virtual void OnAcceleratedPaintSurfaceRetired(CefBrowser browser, ulong poolSurfaceId) { }
     }
 }
