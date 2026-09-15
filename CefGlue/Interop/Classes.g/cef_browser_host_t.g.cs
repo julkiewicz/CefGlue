@@ -51,7 +51,6 @@ namespace Xilium.CefGlue.Interop
         internal IntPtr _notify_screen_info_changed;
         internal IntPtr _invalidate;
         internal IntPtr _send_external_begin_frame;
-        internal IntPtr _release_accelerated_paint_surface;
         internal IntPtr _send_key_event;
         internal IntPtr _send_mouse_click_event;
         internal IntPtr _send_mouse_move_event;
@@ -82,6 +81,8 @@ namespace Xilium.CefGlue.Interop
         internal IntPtr _execute_chrome_command;
         internal IntPtr _is_render_process_unresponsive;
         internal IntPtr _get_runtime_style;
+        internal IntPtr _release_accelerated_paint_surface;
+        internal IntPtr _set_accelerated_paint_spare_surfaces;
         internal IntPtr _set_ax_viewport_collapse;
         
         // CreateBrowser
@@ -352,12 +353,6 @@ namespace Xilium.CefGlue.Interop
         #if !DEBUG
         [SuppressUnmanagedCodeSecurity]
         #endif
-        private delegate void release_accelerated_paint_surface_delegate(cef_browser_host_t* self, ulong surface_id);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
         private delegate void send_key_event_delegate(cef_browser_host_t* self, cef_key_event_t* @event);
         
         [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
@@ -533,6 +528,18 @@ namespace Xilium.CefGlue.Interop
         [SuppressUnmanagedCodeSecurity]
         #endif
         private delegate CefRuntimeStyle get_runtime_style_delegate(cef_browser_host_t* self);
+        
+        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
+        #if !DEBUG
+        [SuppressUnmanagedCodeSecurity]
+        #endif
+        private delegate void release_accelerated_paint_surface_delegate(cef_browser_host_t* self, ulong surface_id);
+        
+        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
+        #if !DEBUG
+        [SuppressUnmanagedCodeSecurity]
+        #endif
+        private delegate void set_accelerated_paint_spare_surfaces_delegate(cef_browser_host_t* self, uint count);
         
         [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
         #if !DEBUG
@@ -1254,546 +1261,563 @@ namespace Xilium.CefGlue.Interop
             d(self);
         }
         
-        // ReleaseAcceleratedPaintSurface
-        private static IntPtr _p2a;
-        private static release_accelerated_paint_surface_delegate _d2a;
-        
-        public static void release_accelerated_paint_surface(cef_browser_host_t* self, ulong surface_id)
-        {
-            release_accelerated_paint_surface_delegate d;
-            var p = self->_release_accelerated_paint_surface;
-            if (p == _p2a) { d = _d2a; }
-            else
-            {
-                d = (release_accelerated_paint_surface_delegate)Marshal.GetDelegateForFunctionPointer(p, typeof(release_accelerated_paint_surface_delegate));
-                if (_p2a == IntPtr.Zero) { _d2a = d; _p2a = p; }
-            }
-            d(self, surface_id);
-        }
-        
         // SendKeyEvent
-        private static IntPtr _p2b;
-        private static send_key_event_delegate _d2b;
+        private static IntPtr _p2a;
+        private static send_key_event_delegate _d2a;
         
         public static void send_key_event(cef_browser_host_t* self, cef_key_event_t* @event)
         {
             send_key_event_delegate d;
             var p = self->_send_key_event;
-            if (p == _p2b) { d = _d2b; }
+            if (p == _p2a) { d = _d2a; }
             else
             {
                 d = (send_key_event_delegate)Marshal.GetDelegateForFunctionPointer(p, typeof(send_key_event_delegate));
-                if (_p2b == IntPtr.Zero) { _d2b = d; _p2b = p; }
+                if (_p2a == IntPtr.Zero) { _d2a = d; _p2a = p; }
             }
             d(self, @event);
         }
         
         // SendMouseClickEvent
-        private static IntPtr _p2c;
-        private static send_mouse_click_event_delegate _d2c;
+        private static IntPtr _p2b;
+        private static send_mouse_click_event_delegate _d2b;
         
         public static void send_mouse_click_event(cef_browser_host_t* self, cef_mouse_event_t* @event, CefMouseButtonType type, int mouseUp, int clickCount)
         {
             send_mouse_click_event_delegate d;
             var p = self->_send_mouse_click_event;
-            if (p == _p2c) { d = _d2c; }
+            if (p == _p2b) { d = _d2b; }
             else
             {
                 d = (send_mouse_click_event_delegate)Marshal.GetDelegateForFunctionPointer(p, typeof(send_mouse_click_event_delegate));
-                if (_p2c == IntPtr.Zero) { _d2c = d; _p2c = p; }
+                if (_p2b == IntPtr.Zero) { _d2b = d; _p2b = p; }
             }
             d(self, @event, type, mouseUp, clickCount);
         }
         
         // SendMouseMoveEvent
-        private static IntPtr _p2d;
-        private static send_mouse_move_event_delegate _d2d;
+        private static IntPtr _p2c;
+        private static send_mouse_move_event_delegate _d2c;
         
         public static void send_mouse_move_event(cef_browser_host_t* self, cef_mouse_event_t* @event, int mouseLeave)
         {
             send_mouse_move_event_delegate d;
             var p = self->_send_mouse_move_event;
-            if (p == _p2d) { d = _d2d; }
+            if (p == _p2c) { d = _d2c; }
             else
             {
                 d = (send_mouse_move_event_delegate)Marshal.GetDelegateForFunctionPointer(p, typeof(send_mouse_move_event_delegate));
-                if (_p2d == IntPtr.Zero) { _d2d = d; _p2d = p; }
+                if (_p2c == IntPtr.Zero) { _d2c = d; _p2c = p; }
             }
             d(self, @event, mouseLeave);
         }
         
         // SendMouseWheelEvent
-        private static IntPtr _p2e;
-        private static send_mouse_wheel_event_delegate _d2e;
+        private static IntPtr _p2d;
+        private static send_mouse_wheel_event_delegate _d2d;
         
         public static void send_mouse_wheel_event(cef_browser_host_t* self, cef_mouse_event_t* @event, int deltaX, int deltaY)
         {
             send_mouse_wheel_event_delegate d;
             var p = self->_send_mouse_wheel_event;
-            if (p == _p2e) { d = _d2e; }
+            if (p == _p2d) { d = _d2d; }
             else
             {
                 d = (send_mouse_wheel_event_delegate)Marshal.GetDelegateForFunctionPointer(p, typeof(send_mouse_wheel_event_delegate));
-                if (_p2e == IntPtr.Zero) { _d2e = d; _p2e = p; }
+                if (_p2d == IntPtr.Zero) { _d2d = d; _p2d = p; }
             }
             d(self, @event, deltaX, deltaY);
         }
         
         // SendTouchEvent
-        private static IntPtr _p2f;
-        private static send_touch_event_delegate _d2f;
+        private static IntPtr _p2e;
+        private static send_touch_event_delegate _d2e;
         
         public static void send_touch_event(cef_browser_host_t* self, cef_touch_event_t* @event)
         {
             send_touch_event_delegate d;
             var p = self->_send_touch_event;
-            if (p == _p2f) { d = _d2f; }
+            if (p == _p2e) { d = _d2e; }
             else
             {
                 d = (send_touch_event_delegate)Marshal.GetDelegateForFunctionPointer(p, typeof(send_touch_event_delegate));
-                if (_p2f == IntPtr.Zero) { _d2f = d; _p2f = p; }
+                if (_p2e == IntPtr.Zero) { _d2e = d; _p2e = p; }
             }
             d(self, @event);
         }
         
         // SendCaptureLostEvent
-        private static IntPtr _p30;
-        private static send_capture_lost_event_delegate _d30;
+        private static IntPtr _p2f;
+        private static send_capture_lost_event_delegate _d2f;
         
         public static void send_capture_lost_event(cef_browser_host_t* self)
         {
             send_capture_lost_event_delegate d;
             var p = self->_send_capture_lost_event;
-            if (p == _p30) { d = _d30; }
+            if (p == _p2f) { d = _d2f; }
             else
             {
                 d = (send_capture_lost_event_delegate)Marshal.GetDelegateForFunctionPointer(p, typeof(send_capture_lost_event_delegate));
-                if (_p30 == IntPtr.Zero) { _d30 = d; _p30 = p; }
+                if (_p2f == IntPtr.Zero) { _d2f = d; _p2f = p; }
             }
             d(self);
         }
         
         // NotifyMoveOrResizeStarted
-        private static IntPtr _p31;
-        private static notify_move_or_resize_started_delegate _d31;
+        private static IntPtr _p30;
+        private static notify_move_or_resize_started_delegate _d30;
         
         public static void notify_move_or_resize_started(cef_browser_host_t* self)
         {
             notify_move_or_resize_started_delegate d;
             var p = self->_notify_move_or_resize_started;
-            if (p == _p31) { d = _d31; }
+            if (p == _p30) { d = _d30; }
             else
             {
                 d = (notify_move_or_resize_started_delegate)Marshal.GetDelegateForFunctionPointer(p, typeof(notify_move_or_resize_started_delegate));
-                if (_p31 == IntPtr.Zero) { _d31 = d; _p31 = p; }
+                if (_p30 == IntPtr.Zero) { _d30 = d; _p30 = p; }
             }
             d(self);
         }
         
         // GetWindowlessFrameRate
-        private static IntPtr _p32;
-        private static get_windowless_frame_rate_delegate _d32;
+        private static IntPtr _p31;
+        private static get_windowless_frame_rate_delegate _d31;
         
         public static int get_windowless_frame_rate(cef_browser_host_t* self)
         {
             get_windowless_frame_rate_delegate d;
             var p = self->_get_windowless_frame_rate;
-            if (p == _p32) { d = _d32; }
+            if (p == _p31) { d = _d31; }
             else
             {
                 d = (get_windowless_frame_rate_delegate)Marshal.GetDelegateForFunctionPointer(p, typeof(get_windowless_frame_rate_delegate));
-                if (_p32 == IntPtr.Zero) { _d32 = d; _p32 = p; }
+                if (_p31 == IntPtr.Zero) { _d31 = d; _p31 = p; }
             }
             return d(self);
         }
         
         // SetWindowlessFrameRate
-        private static IntPtr _p33;
-        private static set_windowless_frame_rate_delegate _d33;
+        private static IntPtr _p32;
+        private static set_windowless_frame_rate_delegate _d32;
         
         public static void set_windowless_frame_rate(cef_browser_host_t* self, int frame_rate)
         {
             set_windowless_frame_rate_delegate d;
             var p = self->_set_windowless_frame_rate;
-            if (p == _p33) { d = _d33; }
+            if (p == _p32) { d = _d32; }
             else
             {
                 d = (set_windowless_frame_rate_delegate)Marshal.GetDelegateForFunctionPointer(p, typeof(set_windowless_frame_rate_delegate));
-                if (_p33 == IntPtr.Zero) { _d33 = d; _p33 = p; }
+                if (_p32 == IntPtr.Zero) { _d32 = d; _p32 = p; }
             }
             d(self, frame_rate);
         }
         
         // ImeSetComposition
-        private static IntPtr _p34;
-        private static ime_set_composition_delegate _d34;
+        private static IntPtr _p33;
+        private static ime_set_composition_delegate _d33;
         
         public static void ime_set_composition(cef_browser_host_t* self, cef_string_t* text, UIntPtr underlinesCount, cef_composition_underline_t* underlines, cef_range_t* replacement_range, cef_range_t* selection_range)
         {
             ime_set_composition_delegate d;
             var p = self->_ime_set_composition;
-            if (p == _p34) { d = _d34; }
+            if (p == _p33) { d = _d33; }
             else
             {
                 d = (ime_set_composition_delegate)Marshal.GetDelegateForFunctionPointer(p, typeof(ime_set_composition_delegate));
-                if (_p34 == IntPtr.Zero) { _d34 = d; _p34 = p; }
+                if (_p33 == IntPtr.Zero) { _d33 = d; _p33 = p; }
             }
             d(self, text, underlinesCount, underlines, replacement_range, selection_range);
         }
         
         // ImeCommitText
-        private static IntPtr _p35;
-        private static ime_commit_text_delegate _d35;
+        private static IntPtr _p34;
+        private static ime_commit_text_delegate _d34;
         
         public static void ime_commit_text(cef_browser_host_t* self, cef_string_t* text, cef_range_t* replacement_range, int relative_cursor_pos)
         {
             ime_commit_text_delegate d;
             var p = self->_ime_commit_text;
-            if (p == _p35) { d = _d35; }
+            if (p == _p34) { d = _d34; }
             else
             {
                 d = (ime_commit_text_delegate)Marshal.GetDelegateForFunctionPointer(p, typeof(ime_commit_text_delegate));
-                if (_p35 == IntPtr.Zero) { _d35 = d; _p35 = p; }
+                if (_p34 == IntPtr.Zero) { _d34 = d; _p34 = p; }
             }
             d(self, text, replacement_range, relative_cursor_pos);
         }
         
         // ImeFinishComposingText
-        private static IntPtr _p36;
-        private static ime_finish_composing_text_delegate _d36;
+        private static IntPtr _p35;
+        private static ime_finish_composing_text_delegate _d35;
         
         public static void ime_finish_composing_text(cef_browser_host_t* self, int keep_selection)
         {
             ime_finish_composing_text_delegate d;
             var p = self->_ime_finish_composing_text;
-            if (p == _p36) { d = _d36; }
+            if (p == _p35) { d = _d35; }
             else
             {
                 d = (ime_finish_composing_text_delegate)Marshal.GetDelegateForFunctionPointer(p, typeof(ime_finish_composing_text_delegate));
-                if (_p36 == IntPtr.Zero) { _d36 = d; _p36 = p; }
+                if (_p35 == IntPtr.Zero) { _d35 = d; _p35 = p; }
             }
             d(self, keep_selection);
         }
         
         // ImeCancelComposition
-        private static IntPtr _p37;
-        private static ime_cancel_composition_delegate _d37;
+        private static IntPtr _p36;
+        private static ime_cancel_composition_delegate _d36;
         
         public static void ime_cancel_composition(cef_browser_host_t* self)
         {
             ime_cancel_composition_delegate d;
             var p = self->_ime_cancel_composition;
-            if (p == _p37) { d = _d37; }
+            if (p == _p36) { d = _d36; }
             else
             {
                 d = (ime_cancel_composition_delegate)Marshal.GetDelegateForFunctionPointer(p, typeof(ime_cancel_composition_delegate));
-                if (_p37 == IntPtr.Zero) { _d37 = d; _p37 = p; }
+                if (_p36 == IntPtr.Zero) { _d36 = d; _p36 = p; }
             }
             d(self);
         }
         
         // DragTargetDragEnter
-        private static IntPtr _p38;
-        private static drag_target_drag_enter_delegate _d38;
+        private static IntPtr _p37;
+        private static drag_target_drag_enter_delegate _d37;
         
         public static void drag_target_drag_enter(cef_browser_host_t* self, cef_drag_data_t* drag_data, cef_mouse_event_t* @event, CefDragOperationsMask allowed_ops)
         {
             drag_target_drag_enter_delegate d;
             var p = self->_drag_target_drag_enter;
-            if (p == _p38) { d = _d38; }
+            if (p == _p37) { d = _d37; }
             else
             {
                 d = (drag_target_drag_enter_delegate)Marshal.GetDelegateForFunctionPointer(p, typeof(drag_target_drag_enter_delegate));
-                if (_p38 == IntPtr.Zero) { _d38 = d; _p38 = p; }
+                if (_p37 == IntPtr.Zero) { _d37 = d; _p37 = p; }
             }
             d(self, drag_data, @event, allowed_ops);
         }
         
         // DragTargetDragOver
-        private static IntPtr _p39;
-        private static drag_target_drag_over_delegate _d39;
+        private static IntPtr _p38;
+        private static drag_target_drag_over_delegate _d38;
         
         public static void drag_target_drag_over(cef_browser_host_t* self, cef_mouse_event_t* @event, CefDragOperationsMask allowed_ops)
         {
             drag_target_drag_over_delegate d;
             var p = self->_drag_target_drag_over;
-            if (p == _p39) { d = _d39; }
+            if (p == _p38) { d = _d38; }
             else
             {
                 d = (drag_target_drag_over_delegate)Marshal.GetDelegateForFunctionPointer(p, typeof(drag_target_drag_over_delegate));
-                if (_p39 == IntPtr.Zero) { _d39 = d; _p39 = p; }
+                if (_p38 == IntPtr.Zero) { _d38 = d; _p38 = p; }
             }
             d(self, @event, allowed_ops);
         }
         
         // DragTargetDragLeave
-        private static IntPtr _p3a;
-        private static drag_target_drag_leave_delegate _d3a;
+        private static IntPtr _p39;
+        private static drag_target_drag_leave_delegate _d39;
         
         public static void drag_target_drag_leave(cef_browser_host_t* self)
         {
             drag_target_drag_leave_delegate d;
             var p = self->_drag_target_drag_leave;
-            if (p == _p3a) { d = _d3a; }
+            if (p == _p39) { d = _d39; }
             else
             {
                 d = (drag_target_drag_leave_delegate)Marshal.GetDelegateForFunctionPointer(p, typeof(drag_target_drag_leave_delegate));
-                if (_p3a == IntPtr.Zero) { _d3a = d; _p3a = p; }
+                if (_p39 == IntPtr.Zero) { _d39 = d; _p39 = p; }
             }
             d(self);
         }
         
         // DragTargetDrop
-        private static IntPtr _p3b;
-        private static drag_target_drop_delegate _d3b;
+        private static IntPtr _p3a;
+        private static drag_target_drop_delegate _d3a;
         
         public static void drag_target_drop(cef_browser_host_t* self, cef_mouse_event_t* @event)
         {
             drag_target_drop_delegate d;
             var p = self->_drag_target_drop;
-            if (p == _p3b) { d = _d3b; }
+            if (p == _p3a) { d = _d3a; }
             else
             {
                 d = (drag_target_drop_delegate)Marshal.GetDelegateForFunctionPointer(p, typeof(drag_target_drop_delegate));
-                if (_p3b == IntPtr.Zero) { _d3b = d; _p3b = p; }
+                if (_p3a == IntPtr.Zero) { _d3a = d; _p3a = p; }
             }
             d(self, @event);
         }
         
         // DragSourceEndedAt
-        private static IntPtr _p3c;
-        private static drag_source_ended_at_delegate _d3c;
+        private static IntPtr _p3b;
+        private static drag_source_ended_at_delegate _d3b;
         
         public static void drag_source_ended_at(cef_browser_host_t* self, int x, int y, CefDragOperationsMask op)
         {
             drag_source_ended_at_delegate d;
             var p = self->_drag_source_ended_at;
-            if (p == _p3c) { d = _d3c; }
+            if (p == _p3b) { d = _d3b; }
             else
             {
                 d = (drag_source_ended_at_delegate)Marshal.GetDelegateForFunctionPointer(p, typeof(drag_source_ended_at_delegate));
-                if (_p3c == IntPtr.Zero) { _d3c = d; _p3c = p; }
+                if (_p3b == IntPtr.Zero) { _d3b = d; _p3b = p; }
             }
             d(self, x, y, op);
         }
         
         // DragSourceSystemDragEnded
-        private static IntPtr _p3d;
-        private static drag_source_system_drag_ended_delegate _d3d;
+        private static IntPtr _p3c;
+        private static drag_source_system_drag_ended_delegate _d3c;
         
         public static void drag_source_system_drag_ended(cef_browser_host_t* self)
         {
             drag_source_system_drag_ended_delegate d;
             var p = self->_drag_source_system_drag_ended;
-            if (p == _p3d) { d = _d3d; }
+            if (p == _p3c) { d = _d3c; }
             else
             {
                 d = (drag_source_system_drag_ended_delegate)Marshal.GetDelegateForFunctionPointer(p, typeof(drag_source_system_drag_ended_delegate));
-                if (_p3d == IntPtr.Zero) { _d3d = d; _p3d = p; }
+                if (_p3c == IntPtr.Zero) { _d3c = d; _p3c = p; }
             }
             d(self);
         }
         
         // GetVisibleNavigationEntry
-        private static IntPtr _p3e;
-        private static get_visible_navigation_entry_delegate _d3e;
+        private static IntPtr _p3d;
+        private static get_visible_navigation_entry_delegate _d3d;
         
         public static cef_navigation_entry_t* get_visible_navigation_entry(cef_browser_host_t* self)
         {
             get_visible_navigation_entry_delegate d;
             var p = self->_get_visible_navigation_entry;
-            if (p == _p3e) { d = _d3e; }
+            if (p == _p3d) { d = _d3d; }
             else
             {
                 d = (get_visible_navigation_entry_delegate)Marshal.GetDelegateForFunctionPointer(p, typeof(get_visible_navigation_entry_delegate));
-                if (_p3e == IntPtr.Zero) { _d3e = d; _p3e = p; }
+                if (_p3d == IntPtr.Zero) { _d3d = d; _p3d = p; }
             }
             return d(self);
         }
         
         // SetAccessibilityState
-        private static IntPtr _p3f;
-        private static set_accessibility_state_delegate _d3f;
+        private static IntPtr _p3e;
+        private static set_accessibility_state_delegate _d3e;
         
         public static void set_accessibility_state(cef_browser_host_t* self, CefState accessibility_state)
         {
             set_accessibility_state_delegate d;
             var p = self->_set_accessibility_state;
-            if (p == _p3f) { d = _d3f; }
+            if (p == _p3e) { d = _d3e; }
             else
             {
                 d = (set_accessibility_state_delegate)Marshal.GetDelegateForFunctionPointer(p, typeof(set_accessibility_state_delegate));
-                if (_p3f == IntPtr.Zero) { _d3f = d; _p3f = p; }
+                if (_p3e == IntPtr.Zero) { _d3e = d; _p3e = p; }
             }
             d(self, accessibility_state);
         }
         
         // SetAutoResizeEnabled
-        private static IntPtr _p40;
-        private static set_auto_resize_enabled_delegate _d40;
+        private static IntPtr _p3f;
+        private static set_auto_resize_enabled_delegate _d3f;
         
         public static void set_auto_resize_enabled(cef_browser_host_t* self, int enabled, cef_size_t* min_size, cef_size_t* max_size)
         {
             set_auto_resize_enabled_delegate d;
             var p = self->_set_auto_resize_enabled;
-            if (p == _p40) { d = _d40; }
+            if (p == _p3f) { d = _d3f; }
             else
             {
                 d = (set_auto_resize_enabled_delegate)Marshal.GetDelegateForFunctionPointer(p, typeof(set_auto_resize_enabled_delegate));
-                if (_p40 == IntPtr.Zero) { _d40 = d; _p40 = p; }
+                if (_p3f == IntPtr.Zero) { _d3f = d; _p3f = p; }
             }
             d(self, enabled, min_size, max_size);
         }
         
         // SetAudioMuted
-        private static IntPtr _p41;
-        private static set_audio_muted_delegate _d41;
+        private static IntPtr _p40;
+        private static set_audio_muted_delegate _d40;
         
         public static void set_audio_muted(cef_browser_host_t* self, int mute)
         {
             set_audio_muted_delegate d;
             var p = self->_set_audio_muted;
-            if (p == _p41) { d = _d41; }
+            if (p == _p40) { d = _d40; }
             else
             {
                 d = (set_audio_muted_delegate)Marshal.GetDelegateForFunctionPointer(p, typeof(set_audio_muted_delegate));
-                if (_p41 == IntPtr.Zero) { _d41 = d; _p41 = p; }
+                if (_p40 == IntPtr.Zero) { _d40 = d; _p40 = p; }
             }
             d(self, mute);
         }
         
         // IsAudioMuted
-        private static IntPtr _p42;
-        private static is_audio_muted_delegate _d42;
+        private static IntPtr _p41;
+        private static is_audio_muted_delegate _d41;
         
         public static int is_audio_muted(cef_browser_host_t* self)
         {
             is_audio_muted_delegate d;
             var p = self->_is_audio_muted;
-            if (p == _p42) { d = _d42; }
+            if (p == _p41) { d = _d41; }
             else
             {
                 d = (is_audio_muted_delegate)Marshal.GetDelegateForFunctionPointer(p, typeof(is_audio_muted_delegate));
-                if (_p42 == IntPtr.Zero) { _d42 = d; _p42 = p; }
+                if (_p41 == IntPtr.Zero) { _d41 = d; _p41 = p; }
             }
             return d(self);
         }
         
         // IsFullscreen
-        private static IntPtr _p43;
-        private static is_fullscreen_delegate _d43;
+        private static IntPtr _p42;
+        private static is_fullscreen_delegate _d42;
         
         public static int is_fullscreen(cef_browser_host_t* self)
         {
             is_fullscreen_delegate d;
             var p = self->_is_fullscreen;
-            if (p == _p43) { d = _d43; }
+            if (p == _p42) { d = _d42; }
             else
             {
                 d = (is_fullscreen_delegate)Marshal.GetDelegateForFunctionPointer(p, typeof(is_fullscreen_delegate));
-                if (_p43 == IntPtr.Zero) { _d43 = d; _p43 = p; }
+                if (_p42 == IntPtr.Zero) { _d42 = d; _p42 = p; }
             }
             return d(self);
         }
         
         // ExitFullscreen
-        private static IntPtr _p44;
-        private static exit_fullscreen_delegate _d44;
+        private static IntPtr _p43;
+        private static exit_fullscreen_delegate _d43;
         
         public static void exit_fullscreen(cef_browser_host_t* self, int will_cause_resize)
         {
             exit_fullscreen_delegate d;
             var p = self->_exit_fullscreen;
-            if (p == _p44) { d = _d44; }
+            if (p == _p43) { d = _d43; }
             else
             {
                 d = (exit_fullscreen_delegate)Marshal.GetDelegateForFunctionPointer(p, typeof(exit_fullscreen_delegate));
-                if (_p44 == IntPtr.Zero) { _d44 = d; _p44 = p; }
+                if (_p43 == IntPtr.Zero) { _d43 = d; _p43 = p; }
             }
             d(self, will_cause_resize);
         }
         
         // CanExecuteChromeCommand
-        private static IntPtr _p45;
-        private static can_execute_chrome_command_delegate _d45;
+        private static IntPtr _p44;
+        private static can_execute_chrome_command_delegate _d44;
         
         public static int can_execute_chrome_command(cef_browser_host_t* self, int command_id)
         {
             can_execute_chrome_command_delegate d;
             var p = self->_can_execute_chrome_command;
-            if (p == _p45) { d = _d45; }
+            if (p == _p44) { d = _d44; }
             else
             {
                 d = (can_execute_chrome_command_delegate)Marshal.GetDelegateForFunctionPointer(p, typeof(can_execute_chrome_command_delegate));
-                if (_p45 == IntPtr.Zero) { _d45 = d; _p45 = p; }
+                if (_p44 == IntPtr.Zero) { _d44 = d; _p44 = p; }
             }
             return d(self, command_id);
         }
         
         // ExecuteChromeCommand
-        private static IntPtr _p46;
-        private static execute_chrome_command_delegate _d46;
+        private static IntPtr _p45;
+        private static execute_chrome_command_delegate _d45;
         
         public static void execute_chrome_command(cef_browser_host_t* self, int command_id, CefWindowOpenDisposition disposition)
         {
             execute_chrome_command_delegate d;
             var p = self->_execute_chrome_command;
-            if (p == _p46) { d = _d46; }
+            if (p == _p45) { d = _d45; }
             else
             {
                 d = (execute_chrome_command_delegate)Marshal.GetDelegateForFunctionPointer(p, typeof(execute_chrome_command_delegate));
-                if (_p46 == IntPtr.Zero) { _d46 = d; _p46 = p; }
+                if (_p45 == IntPtr.Zero) { _d45 = d; _p45 = p; }
             }
             d(self, command_id, disposition);
         }
         
         // IsRenderProcessUnresponsive
-        private static IntPtr _p47;
-        private static is_render_process_unresponsive_delegate _d47;
+        private static IntPtr _p46;
+        private static is_render_process_unresponsive_delegate _d46;
         
         public static int is_render_process_unresponsive(cef_browser_host_t* self)
         {
             is_render_process_unresponsive_delegate d;
             var p = self->_is_render_process_unresponsive;
-            if (p == _p47) { d = _d47; }
+            if (p == _p46) { d = _d46; }
             else
             {
                 d = (is_render_process_unresponsive_delegate)Marshal.GetDelegateForFunctionPointer(p, typeof(is_render_process_unresponsive_delegate));
-                if (_p47 == IntPtr.Zero) { _d47 = d; _p47 = p; }
+                if (_p46 == IntPtr.Zero) { _d46 = d; _p46 = p; }
             }
             return d(self);
         }
         
         // GetRuntimeStyle
-        private static IntPtr _p48;
-        private static get_runtime_style_delegate _d48;
+        private static IntPtr _p47;
+        private static get_runtime_style_delegate _d47;
         
         public static CefRuntimeStyle get_runtime_style(cef_browser_host_t* self)
         {
             get_runtime_style_delegate d;
             var p = self->_get_runtime_style;
-            if (p == _p48) { d = _d48; }
+            if (p == _p47) { d = _d47; }
             else
             {
                 d = (get_runtime_style_delegate)Marshal.GetDelegateForFunctionPointer(p, typeof(get_runtime_style_delegate));
-                if (_p48 == IntPtr.Zero) { _d48 = d; _p48 = p; }
+                if (_p47 == IntPtr.Zero) { _d47 = d; _p47 = p; }
             }
             return d(self);
         }
         
-        // SetAxViewportCollapse
+        // ReleaseAcceleratedPaintSurface
+        private static IntPtr _p48;
+        private static release_accelerated_paint_surface_delegate _d48;
+        
+        public static void release_accelerated_paint_surface(cef_browser_host_t* self, ulong surface_id)
+        {
+            release_accelerated_paint_surface_delegate d;
+            var p = self->_release_accelerated_paint_surface;
+            if (p == _p48) { d = _d48; }
+            else
+            {
+                d = (release_accelerated_paint_surface_delegate)Marshal.GetDelegateForFunctionPointer(p, typeof(release_accelerated_paint_surface_delegate));
+                if (_p48 == IntPtr.Zero) { _d48 = d; _p48 = p; }
+            }
+            d(self, surface_id);
+        }
+        
+        // SetAcceleratedPaintSpareSurfaces
         private static IntPtr _p49;
-        private static set_ax_viewport_collapse_delegate _d49;
+        private static set_accelerated_paint_spare_surfaces_delegate _d49;
+        
+        public static void set_accelerated_paint_spare_surfaces(cef_browser_host_t* self, uint count)
+        {
+            set_accelerated_paint_spare_surfaces_delegate d;
+            var p = self->_set_accelerated_paint_spare_surfaces;
+            if (p == _p49) { d = _d49; }
+            else
+            {
+                d = (set_accelerated_paint_spare_surfaces_delegate)Marshal.GetDelegateForFunctionPointer(p, typeof(set_accelerated_paint_spare_surfaces_delegate));
+                if (_p49 == IntPtr.Zero) { _d49 = d; _p49 = p; }
+            }
+            d(self, count);
+        }
+        
+        // SetAxViewportCollapse
+        private static IntPtr _p4a;
+        private static set_ax_viewport_collapse_delegate _d4a;
         
         public static void set_ax_viewport_collapse(cef_browser_host_t* self, int enabled)
         {
             set_ax_viewport_collapse_delegate d;
             var p = self->_set_ax_viewport_collapse;
-            if (p == _p49) { d = _d49; }
+            if (p == _p4a) { d = _d4a; }
             else
             {
                 d = (set_ax_viewport_collapse_delegate)Marshal.GetDelegateForFunctionPointer(p, typeof(set_ax_viewport_collapse_delegate));
-                if (_p49 == IntPtr.Zero) { _d49 = d; _p49 = p; }
+                if (_p4a == IntPtr.Zero) { _d4a = d; _p4a = p; }
             }
             d(self, enabled);
         }

@@ -1,4 +1,4 @@
-﻿namespace Xilium.CefGlue;
+namespace Xilium.CefGlue;
 
 using Xilium.CefGlue.Interop;
 
@@ -21,6 +21,8 @@ public class CefAcceleratedPaintInfoCommon
             HasSourceSize = info.has_source_size != 0,
             HasCaptureCounter = info.has_capture_counter != 0,
             SurfaceId = info.surface_id,
+            PoolSurfaceId = info.pool_surface_id,
+            CaptureSessionId = info.capture_session_id,
         };
     }
 
@@ -48,4 +50,32 @@ public class CefAcceleratedPaintInfoCommon
     /// small, and holding leases stalls capture.
     /// </remarks>
     public ulong SurfaceId { get; init; }
+
+    /// <summary>
+    /// Identifier for the underlying pool surface, or 0 when unavailable.
+    /// </summary>
+    /// <remarks>
+    /// STABLE across paints and NEVER REUSED: two paints carrying the same value are the same underlying
+    /// texture, and a value once retired is not handed out again for a different one. So work done per surface,
+    /// such as importing it into a graphics API and wrapping it in a texture object, can be done once and reused.
+    /// <para>
+    /// This is exactly what <see cref="SurfaceId"/> is NOT. That identifies a LEASE and is fresh on every
+    /// paint, so anything cached against it is rebuilt every frame. Key per-surface state on this instead.
+    /// </para>
+    /// </remarks>
+    public ulong PoolSurfaceId { get; init; }
+
+    /// <summary>
+    /// Identifies the capture session a paint belongs to, or 0 when unavailable.
+    /// </summary>
+    /// <remarks>
+    /// Every paint of one session carries the same value, and it changes when capture is rebuilt, which happens
+    /// on navigation and on resize. A new session's surfaces are NEW textures, so anything kept per surface from
+    /// an older session can never be asked for again and should be released when this value changes.
+    /// <para>
+    /// Without it there is no way to tell "no more paints of that surface for now" from "that surface is gone",
+    /// and keeping per-surface work for the second case costs a texture's worth of video memory per navigation.
+    /// </para>
+    /// </remarks>
+    public ulong CaptureSessionId { get; init; }
 }

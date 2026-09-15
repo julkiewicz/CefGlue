@@ -240,9 +240,45 @@ namespace Xilium.CefGlue
         {
             CheckSelf(self);
 
+            var native = GetNativeRenderHandler();
+            if (native != IntPtr.Zero)
+            {
+                // A REFERENCE PER CALL, not one for the handler's lifetime. CEF releases what this returns once
+                // it is done with it, and it asks repeatedly, so handing back the same pointer without adding a
+                // reference each time walks the count down to zero while CEF is still using the object. It then
+                // calls a destroyed object, which surfaces as a pure virtual call from a Chromium thread, long
+                // after the call that actually caused it.
+                var handler = (cef_render_handler_t*)native;
+                var addRef = (cef_render_handler_t.add_ref_delegate)Marshal.GetDelegateForFunctionPointer(
+                    handler->_base._add_ref, typeof(cef_render_handler_t.add_ref_delegate));
+                addRef(handler);
+                return handler;
+            }
+
             var result = GetRenderHandler();
             return result != null ? result.ToNative() : null;
         }
+
+        /// <summary>
+        /// Return an externally created render handler, as a raw cef_render_handler_t*, or
+        /// <see cref="IntPtr.Zero"/> to use <see cref="GetRenderHandler"/> instead.
+        /// </summary>
+        /// <remarks>
+        /// Off-screen rendering is the one handler a host may need to implement outside managed code, because
+        /// it is where frames meet whatever graphics stack the host actually draws with. This lets such a host
+        /// supply that one handler while everything else on the client stays here.
+        /// <para>
+        /// The pointer is passed through untouched and this class learns nothing about it. The caller owns the
+        /// contract CEF expects of a returned handler: it must carry a reference for the caller, and it must
+        /// stay alive for as long as CEF may call it, which outlasts the browser it was created for.
+        /// </para>
+        /// <para>
+        /// Returning a non-zero value here means <see cref="GetRenderHandler"/> is not consulted at all. A
+        /// client supplies one render handler or the other, never both, because cef_client_t has a single
+        /// get_render_handler slot with no browser argument.
+        /// </para>
+        /// </remarks>
+        protected virtual IntPtr GetNativeRenderHandler() => IntPtr.Zero;
 
         /// <summary>
         /// Return the handler for off-screen rendering events.

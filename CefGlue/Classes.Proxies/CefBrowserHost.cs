@@ -577,6 +577,23 @@
         }
 
         /// <summary>
+        /// Ask the capture pool behind CefRenderHandler.OnAcceleratedPaint to keep <paramref name="count"/>
+        /// spare surfaces for reuse. This method is only used when window rendering is disabled.
+        /// </summary>
+        /// <remarks>
+        /// The pool keeps a small number of returned surfaces and destroys the rest, so a client holding more
+        /// leases at once than the pool spares makes it destroy and allocate one surface per cycle for as long
+        /// as capture runs. Set this to the number of surfaces held at once. Applies to the current pool only:
+        /// a pool rebuilt after GPU context loss comes back at its default, which the client sees as a new
+        /// capture session id in the next paint, so set it again from there. Values below the pool's own
+        /// minimum are raised to it.
+        /// </remarks>
+        public void SetAcceleratedPaintSpareSurfaces(uint count)
+        {
+            cef_browser_host_t.set_accelerated_paint_spare_surfaces(_self, count);
+        }
+
+        /// <summary>
         /// Issue a BeginFrame request to Chromium.  Only valid when
         /// CefWindowInfo::external_begin_frame_enabled is set to true.
         /// </summary>

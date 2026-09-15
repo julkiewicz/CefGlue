@@ -21,6 +21,23 @@
         public bool IsValid => cef_browser_t.is_valid(_self) != 0;
 
         /// <summary>
+        /// The underlying cef_browser_t*, with a reference added for the caller.
+        /// </summary>
+        /// <remarks>
+        /// For a host that implements part of a browser outside managed code and needs to address the same
+        /// browser from there. The reference is added here because the caller will hold the pointer beyond this
+        /// call and this side cannot know for how long; releasing it is the caller's job.
+        /// </remarks>
+        public IntPtr GetNativeHandleWithReference()
+        {
+            var self = _self;
+            var addRef = (cef_base_ref_counted_t.add_ref_delegate)Marshal.GetDelegateForFunctionPointer(
+                self->_base._add_ref, typeof(cef_base_ref_counted_t.add_ref_delegate));
+            addRef(&self->_base);
+            return (IntPtr)self;
+        }
+
+        /// <summary>
         /// Returns the browser host object. This method can only be called in the
         /// browser process.
         /// </summary>

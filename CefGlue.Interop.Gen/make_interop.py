@@ -163,6 +163,29 @@ def make_struct_file(cls):
         'body': indent + ('\n'+indent).join(body)
       }
 
+def get_added_version(func):
+    """The API version that introduced a method, as a sortable number.
+
+    A method with no 'added' attribute belongs to the original surface and sorts first.
+    'experimental' is the highest version there is, so it sorts last."""
+    added = func.get_attrib('added')
+    if added is None:
+        return 0
+    if added == 'experimental':
+        return 999999
+    return int(added)
+
+def sort_by_added_version(funcs):
+    """Order struct members the way CEF's own translator does: by the version that added them, then by
+    declaration order.
+
+    This is what keeps the C API layout stable across versions. A member added later is appended after every
+    member of earlier versions, wherever its C++ declaration happens to sit, so a client built against an older
+    version still finds the members it knows at the offsets it expects. Following declaration order instead puts
+    a newly added member in the middle of the struct and silently shifts every member below it, which reads as
+    calls landing on the wrong function pointer at runtime."""
+    return sorted(funcs, key=get_added_version)
+
 def get_funcs(cls, base = True, inherited = True):
     funcs = []
 
@@ -184,7 +207,7 @@ def get_funcs(cls, base = True, inherited = True):
         current_cls = classes.pop()
         if current_cls is None:
             break
-        for func in current_cls.get_virtual_funcs():
+        for func in sort_by_added_version(current_cls.get_virtual_funcs()):
             funcs.append( get_func_parts(func, i) )
             i += 1
 
@@ -823,7 +846,7 @@ def make_version_cs(content, api_hash_content, api_versions_content):
     result.append('public const int CHROME_VERSION_PATCH = %s;' % __get_version_constant(content, "CHROME_VERSION_PATCH"))
     result.append("");
 
-    api_details = get_cef_api_details(api_versions_content)
+    api_details = get_cef_api_details(api_versions_content, api_hash_content)
     result.append('public const int CEF_API_VERSION = %s;' % api_details["API_VERSION"])
     result.append('public const string CEF_API_HASH_PLATFORM_WIN = "%s";' % api_details["OS_WIN"])
     result.append('public const string CEF_API_HASH_PLATFORM_MACOS = "%s";' % api_details["OS_MAC"])
@@ -850,17 +873,28 @@ def make_version_cs(content, api_hash_content, api_versions_content):
         'body': indent + ('\n'+indent).join(body)
       }
 
-def get_cef_api_details(content):
+def get_cef_api_details(content, api_hash_content):
+    """Pick the API version these bindings declare, and the hashes that go with it.
+
+    The version is not bookkeeping: a client announces it by calling cef_api_hash(version) before initializing,
+    and the library then builds its C API structs to match. Announce an explicit version and every method added
+    since is compiled out of those structs, so the field a binding reads is a different method's pointer, or
+    past the end of the struct. Calls into it crash.
+
+    So the version has to match the headers the interop was generated from. We generate against the experimental
+    surface, because our own additions live there: experimental is where CEF puts API that is not yet frozen into
+    a numbered version. Explicit versions buy forward and backward compatibility across a range of CEF releases,
+    which is worth having and which we give up here deliberately, since we ship the libcef we bind against.
+    """
     lines = content.splitlines()
-    
-    # Find the last API version
-    match_version = re.search(r"#define\s+CEF_API_VERSION_LAST\s+(CEF_API_VERSION_\d+)", content)
+
+    # The number lives in cef_api_hash.h; the hashes keyed by it live in cef_api_versions.h.
+    match_version = re.search(r"#define\s+CEF_API_VERSION_EXPERIMENTAL\s+(\d+)", api_hash_content)
     if not match_version:
-        raise ValueError("CEF_API_VERSION_LAST not found in the file")
-    
-    last_version = match_version.group(1)
-    last_version_number = last_version.split('_')[-1]
-    
+        raise ValueError("CEF_API_VERSION_EXPERIMENTAL not found in cef_api_hash.h")
+
+    last_version_number = match_version.group(1)
+
     # Extract OS-specific hashes
     details = { "API_VERSION": last_version_number }
     current_os = None

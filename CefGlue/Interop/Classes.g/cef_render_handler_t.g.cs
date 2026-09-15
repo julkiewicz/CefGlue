@@ -30,6 +30,7 @@ namespace Xilium.CefGlue.Interop
         internal IntPtr _on_ime_composition_range_changed;
         internal IntPtr _on_text_selection_changed;
         internal IntPtr _on_virtual_keyboard_requested;
+        internal IntPtr _on_accelerated_paint_surface_retired;
         
         [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
         #if !DEBUG
@@ -156,6 +157,12 @@ namespace Xilium.CefGlue.Interop
         [SuppressUnmanagedCodeSecurity]
         #endif
         internal delegate void on_virtual_keyboard_requested_delegate(cef_render_handler_t* self, cef_browser_t* browser, CefTextInputMode input_mode);
+        
+        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
+        #if !DEBUG
+        [SuppressUnmanagedCodeSecurity]
+        #endif
+        internal delegate void on_accelerated_paint_surface_retired_delegate(cef_render_handler_t* self, cef_browser_t* browser, ulong pool_surface_id);
         
         private static int _sizeof;
         

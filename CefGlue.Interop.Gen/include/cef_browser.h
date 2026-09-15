@@ -744,6 +744,45 @@ class CefBrowserHost : public virtual CefBaseRefCounted {
   /*--cef()--*/
   virtual void SendExternalBeginFrame() = 0;
 
+#if CEF_API_ADDED(CEF_EXPERIMENTAL)
+  ///
+  /// Release a surface leased by CefRenderHandler::OnAcceleratedPaint.
+  /// |surface_id| is the value delivered in CefAcceleratedPaintInfo. This
+  /// method is only used when window rendering is disabled.
+  ///
+  /// While a lease is held the surface is not returned to the capture pool and
+  /// its texture handle stays valid, so it may be sampled after the paint
+  /// callback returns. The pool is small, so release each surface as soon as it
+  /// is no longer in use or capture will stall. Releasing an id that is unknown
+  /// or already released does nothing.
+  ///
+  /*--cef(added=experimental)--*/
+  virtual void ReleaseAcceleratedPaintSurface(uint64_t surface_id) = 0;
+
+  ///
+  /// Ask the capture pool behind CefRenderHandler::OnAcceleratedPaint to keep
+  /// |count| spare surfaces for reuse. This method is only used when window
+  /// rendering is disabled.
+  ///
+  /// The pool keeps a small number of returned surfaces and DESTROYS the rest.
+  /// A client that holds more leases at once than the pool keeps spare
+  /// therefore makes it destroy and allocate one surface per cycle, for as long
+  /// as capture runs. Nothing breaks, but every one of those is an allocation,
+  /// an import on the client's side, and a retirement. Set this to at least the
+  /// number of surfaces held at once.
+  ///
+  /// Applies to the CURRENT pool only. The pool is rebuilt on GPU context loss
+  /// and comes back at its default, which the client sees as a new
+  /// capture_session_id in the next paint, so set this again from there. It is
+  /// deliberately not remembered: one setting living in three layers is worse
+  /// than one call the client can repeat.
+  ///
+  /// Values below the pool's own minimum are raised to it.
+  ///
+  /*--cef(added=experimental)--*/
+  virtual void SetAcceleratedPaintSpareSurfaces(uint32_t count) = 0;
+#endif
+
   ///
   /// Send a key event to the browser.
   ///
