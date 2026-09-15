@@ -82,6 +82,7 @@ namespace Xilium.CefGlue.Interop
         internal IntPtr _is_render_process_unresponsive;
         internal IntPtr _get_runtime_style;
         internal IntPtr _release_accelerated_paint_surface;
+        internal IntPtr _set_accelerated_paint_spare_surfaces;
         internal IntPtr _set_ax_viewport_collapse;
         
         // CreateBrowser
@@ -533,6 +534,12 @@ namespace Xilium.CefGlue.Interop
         [SuppressUnmanagedCodeSecurity]
         #endif
         private delegate void release_accelerated_paint_surface_delegate(cef_browser_host_t* self, ulong surface_id);
+        
+        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
+        #if !DEBUG
+        [SuppressUnmanagedCodeSecurity]
+        #endif
+        private delegate void set_accelerated_paint_spare_surfaces_delegate(cef_browser_host_t* self, uint count);
         
         [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
         #if !DEBUG
@@ -1781,19 +1788,36 @@ namespace Xilium.CefGlue.Interop
             d(self, surface_id);
         }
         
-        // SetAxViewportCollapse
+        // SetAcceleratedPaintSpareSurfaces
         private static IntPtr _p49;
-        private static set_ax_viewport_collapse_delegate _d49;
+        private static set_accelerated_paint_spare_surfaces_delegate _d49;
+        
+        public static void set_accelerated_paint_spare_surfaces(cef_browser_host_t* self, uint count)
+        {
+            set_accelerated_paint_spare_surfaces_delegate d;
+            var p = self->_set_accelerated_paint_spare_surfaces;
+            if (p == _p49) { d = _d49; }
+            else
+            {
+                d = (set_accelerated_paint_spare_surfaces_delegate)Marshal.GetDelegateForFunctionPointer(p, typeof(set_accelerated_paint_spare_surfaces_delegate));
+                if (_p49 == IntPtr.Zero) { _d49 = d; _p49 = p; }
+            }
+            d(self, count);
+        }
+        
+        // SetAxViewportCollapse
+        private static IntPtr _p4a;
+        private static set_ax_viewport_collapse_delegate _d4a;
         
         public static void set_ax_viewport_collapse(cef_browser_host_t* self, int enabled)
         {
             set_ax_viewport_collapse_delegate d;
             var p = self->_set_ax_viewport_collapse;
-            if (p == _p49) { d = _d49; }
+            if (p == _p4a) { d = _d4a; }
             else
             {
                 d = (set_ax_viewport_collapse_delegate)Marshal.GetDelegateForFunctionPointer(p, typeof(set_ax_viewport_collapse_delegate));
-                if (_p49 == IntPtr.Zero) { _d49 = d; _p49 = p; }
+                if (_p4a == IntPtr.Zero) { _d4a = d; _p4a = p; }
             }
             d(self, enabled);
         }
