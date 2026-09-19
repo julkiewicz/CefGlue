@@ -8,6 +8,16 @@ namespace Xilium.CefGlue
 
     public abstract unsafe partial class CefClient
     {
+        /// <summary>
+        /// The native <c>cef_client_t</c> this wraps, WITHOUT taking a reference.
+        /// </summary>
+        /// <remarks>
+        /// For a host that has to reach CEF's own C API on this client, which the wrapper otherwise hides.
+        /// No reference is added, deliberately: a caller inspecting or patching the struct does not own it,
+        /// and <c>ToNative</c> is the one that hands out ownership.
+        /// </remarks>
+        public IntPtr NativeHandle => (IntPtr)_self;
+
         private cef_audio_handler_t* get_audio_handler(cef_client_t* self)
         {
             CheckSelf(self);
